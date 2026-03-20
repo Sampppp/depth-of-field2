@@ -4,12 +4,16 @@
   "description": "React front‑end web page for Depth of Field calculator",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve . -l 3000",
-    "dev": "npx live-server --port=3000"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "live-server": "^1.2.2"
+    "vite": "^5.4.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.5.0"
   }
 }
