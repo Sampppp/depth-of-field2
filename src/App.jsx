@@ -61,6 +61,43 @@ function SteppedSlider({ values, value, onChange, label, formatVal }) {
   );
 }
 
+function LogSlider({ min, max, value, onChange, label }) {
+  const logMin = Math.log(min);
+  const logMax = Math.log(max);
+  const ratio = (Math.log(value) - logMin) / (logMax - logMin);
+  const pos = Math.round(ratio * 1000);
+  const handleSliderChange = e => {
+    const p = +e.target.value;
+    const v = Math.exp(logMin + (logMax - logMin) * (p / 1000));
+    onChange(Math.round(v));
+  };
+  const handleInputChange = e => {
+    const v = Number(e.target.value);
+    if (!isNaN(v)) onChange(v);
+  };
+  return (
+    <div className="slider-wrap">
+      <div className="slider-row">
+        <span className="slider-label">{label}</span>
+        <input
+          type="number"
+          min={min}
+          max={max}
+          value={value}
+          onChange={handleInputChange}
+          style={{ width: '80px', marginLeft: '8px' }}
+        />
+      </div>
+      <input
+        type="range"
+        min={0} max={1000}
+        value={pos}
+        onChange={handleSliderChange}
+      />
+    </div>
+  );
+}
+
 // ─── Focus Zone Diagram ──────────────────────────────────────────────────────
 
 function FocusZone({ results, subjectDist, framingWidth, onDistChange, onFramingChange, referenceSensorId }) {
@@ -98,8 +135,9 @@ function FocusZone({ results, subjectDist, framingWidth, onDistChange, onFraming
   // Track rows: distribute evenly
   const nSensors = results.length;
   const rowAreaH = H - PAD_TOP - PAD_BOT;
-  const rowSpacing = rowAreaH / (nSensors + 1);
-  const rowYs = results.map((_, i) => PAD_TOP + rowSpacing * (i + 1));
+  // Further reduce vertical spacing between sensor rows for a tighter diagram
+  const rowSpacing = rowAreaH / (nSensors * 1);
+  const rowYs = results.map((_, i) => PAD_TOP + rowSpacing / 2 + rowSpacing * i);
 
   // Axis ticks
   const tickCount = 8;
@@ -211,11 +249,11 @@ function FocusZone({ results, subjectDist, framingWidth, onDistChange, onFraming
           fontSize={isRef ? 11 : 10} fontWeight={isRef ? "500" : "400"}
           fill={col} fillOpacity={isRef ? 1 : 0.75}
           fontFamily="'DM Mono', monospace">{r.short}</text>
-        {/* FL label inline */}
-        {barW > 40 && <text x={nearX + barW/2} y={cy}
+        {/* Depth of field width label above the bar */}
+        <text x={nearX + barW/2} y={cy - barH/2 - 6}
           textAnchor="middle" dominantBaseline="central"
           fontSize="9" fill={col} fillOpacity="0.85"
-          fontFamily="'DM Mono', monospace">{r.fl.toFixed(0)}mm</text>}
+          fontFamily="'DM Mono', monospace">{fmtCM(r.dof)}</text>
       </g>
     );
   });
@@ -324,15 +362,12 @@ export default function App() {
         <div className="section">
           <div className="section-head">Focal length</div>
           <div className="slider-wrap">
-            <div className="slider-row">
-              <span className="slider-label">{refSensor.name}</span>
-              <span className="slider-value" style={{ color: refSensor.color }}>{clampedFL.toFixed(0)} mm</span>
-            </div>
-            <input type="range"
-              min={FL_VALUES[0]} max={FL_VALUES[FL_VALUES.length-1]}
+            <LogSlider
+              min={8}
+              max={600}
               value={clampedFL}
-              onChange={e => onFLSlider(+e.target.value)}
-              style={{ '--thumb-color': refSensor.color }}
+              onChange={onFLSlider}
+              label={refSensor.name}
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
@@ -356,15 +391,12 @@ export default function App() {
         <div className="section">
           <div className="section-head">Subject distance</div>
           <div className="slider-wrap">
-            <div className="slider-row">
-              <span className="slider-label">Distance</span>
-              <span className="slider-value">{fmtM(subjectDist)}</span>
-            </div>
-            <input type="range"
-              min={300} max={50000}
+            <LogSlider
+              min={100}
+              max={20000}
               value={subjectDist}
-              step={50}
-              onChange={e => setSubjectDist(+e.target.value)}
+              onChange={setSubjectDist}
+              label="Distance"
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
@@ -376,15 +408,12 @@ export default function App() {
         <div className="section">
           <div className="section-head">Framing width</div>
           <div className="slider-wrap">
-            <div className="slider-row">
-              <span className="slider-label">Width</span>
-              <span className="slider-value">{(framingWidth/1000).toFixed(2)} m</span>
-            </div>
-            <input type="range"
-              min={100} max={10000}
+            <LogSlider
+              min={100}
+              max={10000}
               value={framingWidth}
-              step={10}
-              onChange={e => setFramingWidth(+e.target.value)}
+              onChange={setFramingWidth}
+              label="Width"
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
@@ -392,19 +421,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Equivalent FL list */}
-        <div className="section">
-          <div className="section-head">Equivalent focal lengths</div>
-          <div className="fl-rows">
-            {results.map(r => (
-              <div key={r.id} className="fl-row">
-                <div className="fl-dot" style={{ background: r.color }}/>
-                <span className="fl-name">{r.name}</span>
-                <span className="fl-val" style={{ color: r.color }}>{r.fl.toFixed(1)} mm</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Equivalent FL list removed */}
 
       </aside>
 
