@@ -1,0 +1,15 @@
+{
+  "name": "depth-of-field2",
+  "version": "1.0.0",
+  "description": "React front‑end web page for Depth of Field calculator",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "dev": "npx live-server --port=3000"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
