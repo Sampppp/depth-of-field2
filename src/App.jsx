@@ -510,10 +510,10 @@ export default function App() {
         </div>
 
         {/* Per-sensor DoF comparison row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', borderBottom: '1px solid var(--line)' }}>
           {results.map(r => (
             <div key={r.id} style={{
-              padding: '10px 14px',
+              padding: '8px 10px',
               borderRight: '1px solid var(--line)',
               background: r.id === refSensorId ? r.color + '0d' : 'transparent',
             }}>
