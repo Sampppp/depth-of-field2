@@ -159,11 +159,11 @@ function FocusZone({ results, subjectDist, framingWidth, onDistChange, onFraming
 
     // Horizontal: pan distance. 1px = (rangeMax-rangeMin)/trackW mm
     const mmPerPx = (rangeMax - rangeMin) / trackW;
-    const newDist = Math.max(300, Math.min(50000, startDist + dx * mmPerPx));
+    const newDist = Math.max(1, Math.min(50000, startDist + dx * mmPerPx));
     onDistChange(newDist);
 
     // Vertical: framing. drag down = wider framing. 1px = framing * 0.003
-    const newFraming = Math.max(100, Math.min(10000, startFraming + dy * startFraming * 0.003));
+    const newFraming = Math.max(1, Math.min(10000, startFraming + dy * startFraming * 0.003));
     onFramingChange(newFraming);
   }
 
@@ -293,8 +293,8 @@ function FocusZone({ results, subjectDist, framingWidth, onDistChange, onFraming
 
 export default function App() {
   const [refSensorId, setRefSensorId] = useState('ff');
-  const [apIdx, setApIdx] = useState(APERTURES.indexOf(2.8));
-  const [subjectDist, setSubjectDist] = useState(3000); // mm
+  const [apIdx, setApIdx] = useState(APERTURES.indexOf(4));
+  const [subjectDist, setSubjectDist] = useState(1156); // mm
   const [framingWidth, setFramingWidth] = useState(1000); // mm
   const [flLocked, setFlLocked] = useState(false);
   const [lockedFL, setLockedFL] = useState(null); // only meaningful when flLocked
@@ -305,7 +305,7 @@ export default function App() {
   // The displayed FL is always derived when unlocked, or the stored value when locked.
   const derivedFL = (refSensorDiag * subjectDist) / framingWidth;
   const currentFL = flLocked ? lockedFL : derivedFL;
-  const displayFL = Math.max(8, Math.min(1000, Math.round(currentFL)));
+  const displayFL = Math.max(1, Math.min(1000, Math.round(currentFL)));
 
   // Toggle lock: snapshot current derived FL so there's no jump on lock or unlock.
   function toggleLock() {
