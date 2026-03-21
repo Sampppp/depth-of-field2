@@ -296,22 +296,68 @@ export default function App() {
   const [apIdx, setApIdx] = useState(APERTURES.indexOf(2.8));
   const [subjectDist, setSubjectDist] = useState(3000); // mm
   const [framingWidth, setFramingWidth] = useState(1000); // mm
+  const [flLocked, setFlLocked] = useState(false);
+  const [lockedFL, setLockedFL] = useState(null); // only meaningful when flLocked
 
   const refSensor = SENSORS.find(s => s.id === refSensorId);
   const refSensorDiag = Math.sqrt(refSensor.w * refSensor.w + refSensor.h * refSensor.h);
-  const derivedRefFL = (refSensorDiag * subjectDist) / framingWidth;
 
-  const FL_VALUES = useMemo(() => {
-    const vals = [];
-    for (let f = 8; f <= 1000; f++) vals.push(f);
-    return vals;
-  }, []);
+  // The displayed FL is always derived when unlocked, or the stored value when locked.
+  const derivedFL = (refSensorDiag * subjectDist) / framingWidth;
+  const currentFL = flLocked ? lockedFL : derivedFL;
+  const displayFL = Math.max(8, Math.min(1000, Math.round(currentFL)));
 
-  const clampedFL = Math.max(FL_VALUES[0], Math.min(FL_VALUES[FL_VALUES.length-1], Math.round(derivedRefFL)));
+  // Toggle lock: snapshot current derived FL so there's no jump on lock or unlock.
+  function toggleLock() {
+    if (!flLocked) {
+      // Locking: capture the FL that is currently displayed so state is consistent.
+      setLockedFL(derivedFL);
+    }
+    // Unlocking: discard lockedFL. On the next render derivedFL (from existing
+    // subjectDist + framingWidth) is used, which already matches what was on screen
+    // while locked — no jump because we never changed subjectDist/framingWidth
+    // without also updating the other to keep lockedFL constant (see handlers below).
+    setFlLocked(prev => !prev);
+  }
 
+  // ── Handlers that respect the lock ──────────────────────────────────────────
+
+  // FL slider moved → always adjusts framingWidth (dist stays put).
   function onFLSlider(val) {
-    const newFraming = (refSensor.w * subjectDist) / val;
-    setFramingWidth(newFraming);
+    if (flLocked) {
+      setLockedFL(val);
+      // Keep dist constant, recalc framing from new locked FL.
+      setFramingWidth((refSensorDiag * subjectDist) / val);
+    } else {
+      // Unlocked: adjust framing to match new FL, dist stays.
+      setFramingWidth((refSensorDiag * subjectDist) / val);
+    }
+  }
+
+  // Distance changed (slider or diagram drag).
+  function handleDistChange(newDist) {
+    const clamped = Math.max(300, Math.min(50000, newDist));
+    if (flLocked) {
+      // Keep FL constant → adjust framing.
+      setSubjectDist(clamped);
+      setFramingWidth((refSensorDiag * clamped) / lockedFL);
+    } else {
+      // Unlocked: dist moves freely, framing stays, FL is re-derived next render.
+      setSubjectDist(clamped);
+    }
+  }
+
+  // Framing changed (slider or diagram drag).
+  function handleFramingChange(newFraming) {
+    const clamped = Math.max(100, Math.min(10000, newFraming));
+    if (flLocked) {
+      // Keep FL constant → adjust distance.
+      setFramingWidth(clamped);
+      setSubjectDist((lockedFL * clamped) / refSensorDiag);
+    } else {
+      // Unlocked: framing moves freely, dist stays, FL is re-derived.
+      setFramingWidth(clamped);
+    }
   }
 
   const aperture = APERTURES[apIdx];
@@ -335,7 +381,8 @@ export default function App() {
         <span className="topbar-label">dist {fmtM(subjectDist)}</span>
         <span className="topbar-label">framing {(framingWidth/1000).toFixed(2)} m</span>
         <span className="topbar-label">f/{aperture}</span>
-        <span className="topbar-label">{refSensor.name} · {clampedFL.toFixed(0)} mm</span>
+        <span className="topbar-label">{refSensor.name} · {displayFL} mm</span>
+        {flLocked && <span className="topbar-label" style={{ color: 'var(--accent)' }}>FL LOCKED</span>}
       </header>
 
       {/* ── Sidebar ── */}
@@ -360,18 +407,34 @@ export default function App() {
 
         {/* Focal length for reference sensor */}
         <div className="section">
-          <div className="section-head">Focal length</div>
+          <div className="section-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>Focal length</span>
+            <button
+              onClick={toggleLock}
+              style={{
+                fontSize: 10, fontFamily: 'var(--mono)', letterSpacing: '0.08em',
+                padding: '2px 8px', borderRadius: 4, cursor: 'pointer',
+                border: `1px solid ${flLocked ? 'var(--accent)' : 'var(--line2)'}`,
+                background: flLocked ? 'rgba(200,169,110,0.15)' : 'transparent',
+                color: flLocked ? 'var(--accent)' : 'var(--muted)',
+              }}
+            >
+              {flLocked ? 'LOCKED' : 'LOCK'}
+            </button>
+          </div>
           <div className="slider-wrap">
             <LogSlider
               min={8}
               max={600}
-              value={clampedFL}
+              value={displayFL}
               onChange={onFLSlider}
               label={refSensor.name}
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
-            Changes framing width proportionally
+            {flLocked
+              ? 'Locked: distance/framing adjust together'
+              : 'Unlocked: adjusts framing width'}
           </div>
         </div>
 
@@ -394,13 +457,13 @@ export default function App() {
             <LogSlider
               min={100}
               max={20000}
-              value={subjectDist}
-              onChange={setSubjectDist}
+              value={Math.round(subjectDist)}
+              onChange={handleDistChange}
               label="Distance"
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
-            Also: drag horizontally in the focus zone
+            {flLocked ? 'Locked: adjusts framing width' : 'Also: drag horizontally in the focus zone'}
           </div>
         </div>
 
@@ -411,13 +474,13 @@ export default function App() {
             <LogSlider
               min={100}
               max={10000}
-              value={framingWidth}
-              onChange={setFramingWidth}
+              value={Math.round(framingWidth)}
+              onChange={handleFramingChange}
               label="Width"
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
-            Also: drag vertical in the focus zone
+            {flLocked ? 'Locked: adjusts subject distance' : 'Also: drag vertical in the focus zone'}
           </div>
         </div>
 
@@ -467,8 +530,8 @@ export default function App() {
             results={results}
             subjectDist={subjectDist}
             framingWidth={framingWidth}
-            onDistChange={setSubjectDist}
-            onFramingChange={setFramingWidth}
+            onDistChange={handleDistChange}
+            onFramingChange={handleFramingChange}
             referenceSensorId={refSensorId}
           />
           <div className="hint-bar">
