@@ -61,7 +61,7 @@ function SteppedSlider({ values, value, onChange, label, formatVal }) {
   );
 }
 
-function LogSlider({ min, max, value, onChange, label }) {
+function LogSlider({ min, max, value, onChange, label, onDoubleClick }) {
   const logMin = Math.log(min);
   const logMax = Math.log(max);
   const ratio = (Math.log(value) - logMin) / (logMax - logMin);
@@ -76,7 +76,7 @@ function LogSlider({ min, max, value, onChange, label }) {
     if (!isNaN(v)) onChange(v);
   };
   return (
-    <div className="slider-wrap">
+    <div className="slider-wrap" onDoubleClick={onDoubleClick}>
       <div className="slider-row">
         <span className="slider-label">{label}</span>
         <input
@@ -454,12 +454,13 @@ export default function App() {
         <div className="section">
           <div className="section-head">Subject distance</div>
           <div className="slider-wrap">
-            <LogSlider
-              min={100}
-              max={20000}
-              value={Math.round(subjectDist)}
-              onChange={handleDistChange}
-              label="Distance"
+<LogSlider
+  min={100}
+  max={20000}
+  value={Math.round(subjectDist)}
+  onChange={handleDistChange}
+  onDoubleClick={() => setSubjectDist(1156)}
+  label="Distance"
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
@@ -471,12 +472,13 @@ export default function App() {
         <div className="section">
           <div className="section-head">Framing width</div>
           <div className="slider-wrap">
-            <LogSlider
-              min={100}
-              max={10000}
-              value={Math.round(framingWidth)}
-              onChange={handleFramingChange}
-              label="Width"
+<LogSlider
+  min={100}
+  max={10000}
+  value={Math.round(framingWidth)}
+  onChange={handleFramingChange}
+  onDoubleClick={() => setFramingWidth(1000)}
+  label="Width"
             />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, fontFamily: 'var(--mono)' }}>
