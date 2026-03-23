@@ -485,9 +485,6 @@ export default function App() {
             {flLocked ? 'Locked: adjusts subject distance' : 'Also: drag vertical in the focus zone'}
           </div>
         </div>
-
-        {/* Equivalent FL list removed */}
-
       </aside>
 
       {/* ── Main area ── */}
@@ -512,11 +509,9 @@ export default function App() {
         </div>
 
         {/* Per-sensor DoF comparison row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', borderBottom: '1px solid var(--line)' }}>
+        <div className="sensor-row">
           {results.map(r => (
-            <div key={r.id} style={{
-              padding: '8px 10px',
-              borderRight: '1px solid var(--line)',
+            <div key={r.id} className="sensor-box" style={{
               background: r.id === refSensorId ? r.color + '0d' : 'transparent',
             }}>
               <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: r.color, letterSpacing: '0.08em', marginBottom: 3 }}>{r.short}</div>

@@ -41,6 +41,21 @@ body {
   grid-template-rows: 48px 1fr;
 }
 
+/* Responsive layout for mobile */
+@media (max-width: 600px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+  }
+  .sidebar {
+    grid-column: 1 / -1;
+    padding: 10px 0;
+  }
+  .main {
+    grid-column: 1 / -1;
+  }
+}
+
 .topbar {
   grid-column: 1 / -1;
   display: flex;
@@ -49,6 +64,7 @@ body {
   border-bottom: 1px solid var(--line);
   background: var(--bg);
   gap: 20px;
+  flex-wrap: wrap;
 }
 .topbar-title {
   font-family: var(--mono);
@@ -65,10 +81,17 @@ body {
   letter-spacing: 0.06em;
 }
 
+/* Mobile: reduce label font size */
+@media (max-width: 600px) {
+  .topbar-label {
+    font-size: 10px;
+  }
+}
+
 .sidebar {
   background: var(--bg2);
   border-right: 1px solid var(--line);
-  padding: 20px 0;
+  padding: 10px 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -80,6 +103,13 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* Mobile: allow scrolling in main area */
+@media (max-width: 600px) {
+  .main {
+    overflow-y: auto;
+  }
 }
 
 /* ─── Sidebar sections ───────────────────────────── */
@@ -101,7 +131,7 @@ body {
 /* ─── Sensor grid ────────────────────────────────── */
 .sensor-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 6px;
 }
 .sensor-btn {
@@ -202,7 +232,7 @@ input[type=number]:focus {
 /* ─── DoF metric cards ───────────────────────────── */
 .metric-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   border-bottom: 1px solid var(--line);
 }
 .metric-card {
@@ -267,3 +297,47 @@ input[type=number]:focus {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+/* ─── Mobile responsive tweaks ───────────────────── */
+@media (max-width: 600px) {
+  .topbar {
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .sidebar {
+    padding: 8px 0;
+  }
+  .section {
+    padding: 12px 16px;
+  }
+
+  /* Increase height of focus zone diagram on mobile */
+  .diagram-area {
+    min-height: 300px;
+  }
+
+  /* Per-sensor comparison row adjustments for mobile */
+  .sensor-row {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 120px; /* static height to prevent vertical growth */
+    align-items: stretch;
+  }
+  .sensor-box {
+    flex: 0 0 80px;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .sensor-box > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 9px;
+  }
+}
