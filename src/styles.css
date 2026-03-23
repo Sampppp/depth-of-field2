@@ -298,6 +298,20 @@ input[type=number]:focus {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
 
+/* Per-sensor comparison row (desktop) */
+.sensor-row {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+}
+.sensor-box {
+  flex: 0 0 calc(100% / 8);
+  padding: 8px 10px;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  box-sizing: border-box;
+}
+
 /* ─── Mobile responsive tweaks ───────────────────── */
 @media (max-width: 600px) {
   .topbar {

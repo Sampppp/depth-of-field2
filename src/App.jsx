@@ -62,6 +62,12 @@ function SteppedSlider({ values, value, onChange, label, formatVal }) {
 }
 
 function LogSlider({ min, max, value, onChange, label, onDoubleClick }) {
+  const [inputVal, setInputVal] = useState(value);
+  // Keep internal input in sync when external value changes
+  useEffect(() => {
+    setInputVal(value);
+  }, [value]);
+
   const logMin = Math.log(min);
   const logMax = Math.log(max);
   const ratio = (Math.log(value) - logMin) / (logMax - logMin);
@@ -72,8 +78,19 @@ function LogSlider({ min, max, value, onChange, label, onDoubleClick }) {
     onChange(Math.round(v));
   };
   const handleInputChange = e => {
-    const v = Number(e.target.value);
+    setInputVal(e.target.value);
+  };
+  const commitChange = () => {
+    const v = Number(inputVal);
     if (!isNaN(v)) onChange(v);
+  };
+  const handleKeyDown = e => {
+    if (e.key === 'Enter') {
+      commitChange();
+    }
+  };
+  const handleBlur = () => {
+    commitChange();
   };
   return (
     <div className="slider-wrap" onDoubleClick={onDoubleClick}>
@@ -83,8 +100,10 @@ function LogSlider({ min, max, value, onChange, label, onDoubleClick }) {
           type="number"
           min={min}
           max={max}
-          value={value}
+          value={inputVal}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
           style={{ width: '80px', marginLeft: '8px' }}
         />
       </div>
